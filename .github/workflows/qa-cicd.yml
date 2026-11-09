@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
-        uses: action/checkout@v4
+        uses: action/checkout@v7
 
       - name: Run Gitleaks Scan
         run: |
@@ -29,7 +29,7 @@ jobs:
             --exit-code 0
 
       - name: Upload Gitleaks report
-        uses: action/upload-artifact@v4
+        uses: action/upload-artifact@v7
         with:
           name: gitleak-report
           path: gitleaks-report.json
