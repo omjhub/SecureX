@@ -17,7 +17,7 @@ spec:
       - name: regcred
       containers:
       - name: nodejs-app
-        image: omajuwa/nodejs-app:9080aa707e5b1c2716003b82150e68add359b9a1
+        image: omajuwa/nodejs-app:3b08965f7210143a0732fbc842ab07ea30923d79
         ports:
         - containerPort: 5000
         env:
