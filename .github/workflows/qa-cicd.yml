@@ -6,6 +6,7 @@ on:
     paths:
       - client/**
       - server/**
+      - k8-manifests/**
       - .github/workflows/qa-cicd.yml
 
 permissions:
@@ -579,6 +580,12 @@ jobs:
         run: |
           kubectl apply -f k8-manifests/qa/ -n "${K8S_NAMESPACE}"
 
+      # - name: Verify rollout
+      #   run: |
+      #     kubectl rollout status deployment/nodejs-app -n "${K8S_NAMESPACE}" --timeout=180s
+
       - name: Verify rollout
         run: |
+          kubectl rollout status statefulset/mysql -n "${K8S_NAMESPACE}" --timeout=300s
+          kubectl rollout restart deployment/nodejs-app -n "${K8S_NAMESPACE}"
           kubectl rollout status deployment/nodejs-app -n "${K8S_NAMESPACE}" --timeout=180s
