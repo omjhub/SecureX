@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - k8-manifests/prod/app-deployment.yaml
+      - k8-manifests/prod/app-deloyment.yaml
       - .github/workflows/pro-cd.yaml
 
 permissions:
