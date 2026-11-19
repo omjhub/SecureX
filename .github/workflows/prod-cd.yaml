@@ -74,8 +74,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AWS_REGION: ap-south-1
-      EKS_CLUSTER_NAME: my-cluster
+      AWS_REGION: eu-north-1
+      EKS_CLUSTER_NAME: securex-cluster
       K8S_NAMESPACE: prod
 
     steps:
