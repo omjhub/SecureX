@@ -6,7 +6,7 @@ on:
     paths:
       - client/**
       - server/**
-      - k8-manifests/**
+      # - k8-manifests/**
       - .github/workflows/qa-cicd.yml
 
 permissions:
