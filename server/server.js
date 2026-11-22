@@ -137,4 +137,4 @@ if (require.main === module) {
   createApp(db).listen(port, () => console.log(`Server listening on port ${port}`));
 }
 
-module.exports = { createApp, validateUser };
+module.exports = { createApp, validateUser, requireEnv, initDatabase };
