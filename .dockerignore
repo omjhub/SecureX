@@ -87,3 +87,10 @@ temp/
 ############################
 jest-report
 test-results
+
+############################
+# Tests and coverage
+############################
+**/__tests__
+**/coverage
+**/eslint.config.js

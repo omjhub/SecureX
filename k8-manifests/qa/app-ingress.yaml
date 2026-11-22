@@ -6,13 +6,16 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/group.name: securex
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-north-1:112736196115:certificate/72f44b5b-9d6c-46c2-b979-37c1aa853935
 spec:
   ingressClassName: alb
   rules:
-    - host: omajuwa.space
+    - host: qa.omajuwa.space
       http:
         paths:
           - path: /

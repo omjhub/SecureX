@@ -36,10 +36,10 @@ async function request(url, options = {}) {
     try {
       const body = await res.json();
       if (body && (body.error || body.message)) message = body.error || body.message;
-    } catch (e) { /* no JSON body */ }
+    } catch { /* no JSON body */ }
     throw new Error(message);
   }
-  try { return await res.json(); } catch (e) { return null; }
+  try { return await res.json(); } catch { return null; }
 }
 
 async function fetchUsers() {

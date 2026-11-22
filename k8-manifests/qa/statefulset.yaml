@@ -3,6 +3,15 @@ kind: StatefulSet
 metadata:
   name: mysql
   namespace: qa
+  annotations:
+    # Accepted risks for the official MySQL image, which starts as root and then drops to the mysql user.
+    checkov.io/skip1: CKV_K8S_23=Official MySQL image entrypoint starts as root and steps down to the mysql user
+    checkov.io/skip2: CKV_K8S_40=UID is set by the official MySQL image
+    checkov.io/skip3: CKV_K8S_22=MySQL writes to its data volume and runtime directories
+    checkov.io/skip4: CKV_K8S_20=Entrypoint needs to switch user at start-up
+    checkov.io/skip5: CKV_K8S_28=Default capabilities kept for the entrypoint user switch
+    checkov.io/skip6: CKV_K8S_37=Default capabilities kept for the entrypoint user switch
+    checkov.io/skip7: CKV_K8S_15=Pinned tag mysql:8.0 pulled once per node to avoid Docker Hub rate limits
 spec:
   serviceName: mysql
   replicas: 1
@@ -14,9 +23,17 @@ spec:
       labels:
         app: mysql
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mysql
           image: mysql:8.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
           args:
             - "--default-authentication-plugin=mysql_native_password"
           ports:
@@ -24,6 +41,23 @@ spec:
           envFrom:
             - secretRef:
                 name: mysql-secret
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$MYSQL_ROOT_PASSWORD\" --silent"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$MYSQL_ROOT_PASSWORD\" --silent"]
+            initialDelaySeconds: 60
+            periodSeconds: 20
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql
