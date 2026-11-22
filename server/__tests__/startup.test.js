@@ -54,3 +54,23 @@ describe('initDatabase', () => {
     expect(db.query).toHaveBeenCalledTimes(3);
   });
 });
+
+describe('email validation', () => {
+  const { validateUser } = require('../server');
+  const ok = (email) => !validateUser({ name: 'Ada', email, role: 'User' }).error;
+
+  test.each(['ada@example.com', 'a.b+tag@mail.example.co.uk'])('accepts %s', (email) => {
+    expect(ok(email)).toBe(true);
+  });
+
+  test.each(['', 'ada', '@example.com', 'ada@', 'ada@example', 'ada@.com', 'ada@example.', 'a@b@c.com', 'ada @example.com'])(
+    'rejects %p', (email) => {
+      expect(ok(email)).toBe(false);
+    });
+
+  test('handles a very long hostile input quickly', () => {
+    const start = Date.now();
+    expect(ok('a@' + 'a.'.repeat(5000) + '@')).toBe(false);
+    expect(Date.now() - start).toBeLessThan(50);
+  });
+});

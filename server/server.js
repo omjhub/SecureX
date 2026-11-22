@@ -10,7 +10,6 @@ const mysql = require('mysql2');
 const path = require('path');
 
 const ROLES = ['Admin', 'User'];
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -31,12 +30,25 @@ function createPool() {
   });
 }
 
+// Checks an email address without a regular expression, so a long or crafted
+// input cannot cause slow backtracking (ReDoS). Rules: at most 254 characters,
+// no whitespace, exactly one "@" with text before it, and a domain with a dot
+// that is not its first or last character.
+function isValidEmail(email) {
+  if (email.length === 0 || email.length > 254 || /\s/.test(email)) return false;
+  const at = email.indexOf('@');
+  if (at < 1 || at !== email.lastIndexOf('@')) return false;
+  const domain = email.slice(at + 1);
+  const dot = domain.lastIndexOf('.');
+  return dot > 0 && dot < domain.length - 1;
+}
+
 function validateUser(body) {
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
   const role = body.role;
   if (name.length < 2 || name.length > 100) return { error: 'Name must be 2 to 100 characters.' };
-  if (email.length > 254 || !EMAIL_RE.test(email)) return { error: 'Email address is not valid.' };
+  if (!isValidEmail(email)) return { error: 'Email address is not valid.' };
   if (!ROLES.includes(role)) return { error: 'Role must be Admin or User.' };
   return { value: { name, email, role } };
 }
