@@ -3,7 +3,6 @@
 // so names or emails containing HTML or script cannot execute in the page.
 
 const API = '/api/users';
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ROLES = ['User', 'Admin'];
 
 const state = {
@@ -21,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindForm();
   bindToolbar();
   bindModals();
-  fetchUsers();
+  void fetchUsers(); // errors are handled inside fetchUsers
 });
 
 // ---------- API ----------
@@ -36,10 +35,10 @@ async function request(url, options = {}) {
     try {
       const body = await res.json();
       if (body && (body.error || body.message)) message = body.error || body.message;
-    } catch (e) { /* no JSON body */ }
+    } catch { /* no JSON body */ }
     throw new Error(message);
   }
-  try { return await res.json(); } catch (e) { return null; }
+  try { return await res.json(); } catch { return null; }
 }
 
 async function fetchUsers() {
@@ -56,12 +55,25 @@ async function fetchUsers() {
 
 // ---------- Validation ----------
 
+// Checks an email address without a regular expression, so a long or crafted
+// input cannot cause slow backtracking (ReDoS). Rules: at most 254 characters,
+// no whitespace, exactly one "@" with text before it, and a domain with a dot
+// that is not its first or last character.
+function isValidEmail(email) {
+  if (email.length === 0 || email.length > 254 || /\s/.test(email)) return false;
+  const at = email.indexOf('@');
+  if (at < 1 || at !== email.lastIndexOf('@')) return false;
+  const domain = email.slice(at + 1);
+  const dot = domain.lastIndexOf('.');
+  return dot > 0 && dot < domain.length - 1;
+}
+
 function cleanInput(name, email, role) {
   const n = String(name || '').trim();
   const e = String(email || '').trim().toLowerCase();
   if (n.length < 2) return { error: 'Please enter a name (at least 2 characters).' };
   if (n.length > 100) return { error: 'Name is too long.' };
-  if (!EMAIL_RE.test(e) || e.length > 254) return { error: 'Please enter a valid email address.' };
+  if (!isValidEmail(e)) return { error: 'Please enter a valid email address.' };
   if (!ROLES.includes(role)) return { error: 'Please choose a valid role.' };
   return { value: { name: n, email: e, role } };
 }

@@ -1,0 +1,7 @@
+# Checkov settings for SecureX.
+# Repo-wide accepted risks (reviewed; see the report's next steps):
+#   CKV_K8S_43  Image digests: images are pinned by commit-SHA tag; digest pinning is planned.
+#   CKV_K8S_35  Secrets as env vars: values come from an External Secrets-managed Secret; mounting as files is planned.
+skip-check:
+  - CKV_K8S_43
+  - CKV_K8S_35

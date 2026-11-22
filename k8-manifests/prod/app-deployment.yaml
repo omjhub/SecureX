@@ -13,13 +13,49 @@ spec:
       labels:
         app: nodejs-app
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       imagePullSecrets:
       - name: regcred
       containers:
       - name: nodejs-app
-        image: omajuwa/nodejs-app:prod-41bd8a4de4d68bfdc54725eb7849f1914f8c1317
+        image: omajuwa/nodejs-app:prod-b424286593dee632de267c7a3ed04ad9fbff006f
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 5000
+          initialDelaySeconds: 20
+          periodSeconds: 20
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
         env:
         - name: DB_HOST
           value: mysql
@@ -38,8 +74,6 @@ spec:
             secretKeyRef:
               name: mysql-secret
               key: MYSQL_PASSWORD
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: mysql-secret
-              key: DATABASE_URL
+      volumes:
+      - name: tmp
+        emptyDir: {}
