@@ -1,0 +1,37 @@
+# Only the app may talk to MySQL; the app accepts traffic on port 5000 only.
+# Enforced once VPC CNI network policy support is enabled on the cluster.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mysql-allow-app-only
+  namespace: prod
+spec:
+  podSelector:
+    matchLabels:
+      app: mysql
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: nodejs-app
+      ports:
+        - protocol: TCP
+          port: 3306
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nodejs-app-allow-http
+  namespace: prod
+spec:
+  podSelector:
+    matchLabels:
+      app: nodejs-app
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 5000
