@@ -56,12 +56,26 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      # - name: Retag the QA image without rebuilding
+      #   run: |
+      #     docker buildx imagetools create \
+      #       --tag "${IMAGE_REPO}:${{ steps.qa.outputs.prod_tag }}" \
+      #       "${IMAGE_REPO}:${{ steps.qa.outputs.qa_sha }}"
+      #     docker buildx imagetools inspect "${IMAGE_REPO}:${{ steps.qa.outputs.prod_tag }}"
+
       - name: Retag the QA image without rebuilding
         run: |
           docker buildx imagetools create \
             --tag "${IMAGE_REPO}:${{ steps.qa.outputs.prod_tag }}" \
             "${IMAGE_REPO}:${{ steps.qa.outputs.qa_sha }}"
-          docker buildx imagetools inspect "${IMAGE_REPO}:${{ steps.qa.outputs.prod_tag }}"
+          # Docker Hub can take a few seconds before a new tag is readable
+          for i in 1 2 3 4 5 6; do
+            if docker buildx imagetools inspect "${IMAGE_REPO}:${{ steps.qa.outputs.prod_tag }}"; then exit 0; fi
+            echo "Tag not visible yet, retrying in 5s ($i/6)"
+            sleep 5
+          done
+          echo "Promoted tag never became visible on Docker Hub" >&2
+          exit 1
 
   deploy-to-k8s:
     name: Deploy to Production Kubernetes
